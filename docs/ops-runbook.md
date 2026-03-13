@@ -65,6 +65,13 @@ $env:MCP_ALLOWED_REPOS="owner/repo"
 .\scripts\start_mcp_server.ps1
 ```
 
+如果这台机器已经能正常 `git push` 到 GitHub，通常连上面第 4 步都可以省掉。
+
+脚本会自动：
+
+- 从本机 GitHub 凭证里取 token
+- 从当前 git remote 推断仓库名
+
 6. 浏览器打开：
 
 ```text

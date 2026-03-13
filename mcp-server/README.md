@@ -29,6 +29,13 @@ $env:MCP_ALLOWED_REPOS="owner/repo"
 .\scripts\start_mcp_server.ps1
 ```
 
+如果这台机器已经能正常往 GitHub 推代码，很多时候这里可以直接跳到第 4 步。
+
+脚本会尽量自动补：
+
+- `GITHUB_TOKEN`
+- `GITHUB_REPOSITORY`
+
 5. 打开浏览器访问：
 
 ```text
