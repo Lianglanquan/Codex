@@ -1,0 +1,7 @@
+interface:
+  display_name: "Minimal Change"
+  short_description: "Edit the minimum viable code path while preserving scope, safety, and rollback."
+  default_prompt: "Use $implement-minimal-change to make the smallest correct code change inside the approved scope."
+policy:
+  allow_implicit_invocation: true
+

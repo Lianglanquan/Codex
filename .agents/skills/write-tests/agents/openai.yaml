@@ -1,0 +1,7 @@
+interface:
+  display_name: "Write Tests"
+  short_description: "Add targeted unit and regression coverage with command evidence and follow-up gaps."
+  default_prompt: "Use $write-tests to add or adjust tests for this change and report the validation evidence."
+policy:
+  allow_implicit_invocation: true
+

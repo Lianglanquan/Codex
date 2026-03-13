@@ -1,0 +1,7 @@
+interface:
+  display_name: "Analyze Task"
+  short_description: "Turn boss prompts into scoped plans with acceptance, risks, and file impact."
+  default_prompt: "Use $analyze-task to turn this request into a scoped plan.json with acceptance criteria and risks."
+policy:
+  allow_implicit_invocation: true
+

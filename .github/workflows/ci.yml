@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Python deps
+        run: python -m pip install -e .[dev]
+      - name: Run lint
+        run: python scripts/python_syntax_check.py orchestrator apps/api tests
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install web deps
+        run: npm --prefix apps/web ci
+      - name: Run typecheck
+        run: npm --prefix apps/web run typecheck
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install web deps
+        run: npm --prefix apps/web ci
+      - name: Run build
+        run: NEXT_DIST_DIR=.next-build npm --prefix apps/web exec next build --webpack
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Python deps
+        run: python -m pip install -e .[dev]
+      - name: Run tests
+        shell: bash
+        run: |
+          mkdir -p ci-results
+          set -o pipefail
+          python -m pytest --junitxml=ci-results/pytest.xml | tee ci-results/pytest.log
+      - name: Build test summary artifact
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          results_dir = Path("ci-results")
+          xml_path = results_dir / "pytest.xml"
+          log_path = results_dir / "pytest.log"
+          tests = {"total": 0, "failures": 0, "errors": 0, "skipped": 0, "passed": 0}
+          if xml_path.exists():
+              root = ET.parse(xml_path).getroot()
+              tests["total"] = int(root.attrib.get("tests", "0"))
+              tests["failures"] = int(root.attrib.get("failures", "0"))
+              tests["errors"] = int(root.attrib.get("errors", "0"))
+              tests["skipped"] = int(root.attrib.get("skipped", "0"))
+              tests["passed"] = max(
+                  tests["total"] - tests["failures"] - tests["errors"] - tests["skipped"],
+                  0,
+              )
+
+          log_text = log_path.read_text(encoding="utf-8") if log_path.exists() else ""
+          summary = {
+              "status": "success" if tests["failures"] == 0 and tests["errors"] == 0 else "failure",
+              "command": "python -m pytest --junitxml=ci-results/pytest.xml",
+              "tests": tests,
+              "coverage": {
+                  "available": False,
+                  "summary": "Coverage command is not configured in this repository yet."
+              },
+              "failure_excerpt": "\n".join(log_text.splitlines()[-30:]),
+          }
+          (results_dir / "test-summary.json").write_text(
+              json.dumps(summary, ensure_ascii=False, indent=2),
+              encoding="utf-8",
+          )
+          PY
+      - name: Upload test summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-test-summary
+          path: |
+            ci-results/test-summary.json
+            ci-results/pytest.log
+            ci-results/pytest.xml

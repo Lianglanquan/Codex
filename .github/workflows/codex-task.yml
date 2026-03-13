@@ -1,0 +1,104 @@
+name: Codex Task
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  execute:
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '@codex') &&
+      !contains(github.event.comment.body, '@codex review') &&
+      github.event.comment.author_association != 'NONE'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Load PR context
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            });
+            return JSON.stringify({
+              number: pr.number,
+              headRef: pr.head.ref,
+              headRepo: pr.head.repo.full_name,
+            });
+      - name: Stop on fork PRs
+        if: ${{ fromJson(steps.pr.outputs.result).headRepo != github.repository }}
+        run: |
+          echo "Fork PRs are not supported for writable Codex execution."
+          exit 1
+      - name: Checkout PR head
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ fromJson(steps.pr.outputs.result).headRepo }}
+          ref: ${{ fromJson(steps.pr.outputs.result).headRef }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install -e .[dev]
+          npm --prefix apps/web ci
+      - name: Run Codex task
+        id: run_codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          sandbox: workspace-write
+          prompt: |
+            You are executing a PR follow-up task in ${{ github.repository }}.
+
+            Read and follow AGENTS.md. Work only on the current branch checkout.
+            Source of truth is the current PR discussion. Implement the task requested in this comment:
+
+            ${{ github.event.comment.body }}
+
+            Before finishing, run:
+            - python scripts/python_syntax_check.py orchestrator apps/api tests
+            - npm --prefix apps/web run typecheck
+            - npm --prefix apps/web run build
+            - python -m pytest
+
+            Summarize exactly what changed, what was verified, risks, and rollback.
+      - name: Commit changes if any
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "codex-bot"
+            git config user.email "codex-bot@users.noreply.github.com"
+            git add -A
+            git commit -m "codex: apply PR follow-up"
+            git push
+          fi
+      - name: Post execution summary
+        if: steps.run_codex.outputs.final-message != ''
+        uses: actions/github-script@v7
+        env:
+          CODEX_FINAL_MESSAGE: ${{ steps.run_codex.outputs.final-message }}
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number("${{ fromJson(steps.pr.outputs.result).number }}"),
+              body: process.env.CODEX_FINAL_MESSAGE,
+            });

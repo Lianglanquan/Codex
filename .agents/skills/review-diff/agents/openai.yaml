@@ -1,0 +1,7 @@
+interface:
+  display_name: "Review Diff"
+  short_description: "Score the diff against rubric evidence and return a strict pass or fail decision."
+  default_prompt: "Use $review-diff to review this change against the rubric and return blockers plus a pass/fail decision."
+policy:
+  allow_implicit_invocation: true
+

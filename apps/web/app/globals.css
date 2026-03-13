@@ -1,0 +1,246 @@
+:root {
+  --bg: #12110f;
+  --bg-elevated: rgba(29, 26, 21, 0.78);
+  --panel-border: rgba(255, 237, 204, 0.12);
+  --text: #f5e8cf;
+  --text-muted: #d1c0a4;
+  --accent: #ee6c4d;
+  --accent-strong: #f4a261;
+  --ok: #5cb85c;
+  --warn: #f4a261;
+  --danger: #d1495b;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(244, 162, 97, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(238, 108, 77, 0.16), transparent 26%),
+    linear-gradient(180deg, #161411 0%, #0e0d0b 100%);
+  color: var(--text);
+  font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.shell {
+  width: min(1120px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 48px 0 64px;
+}
+
+.hero {
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent-strong);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Bahnschrift", "Segoe UI Variable Display", sans-serif;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2.6rem, 7vw, 5.4rem);
+  line-height: 0.96;
+  max-width: 9ch;
+}
+
+.lede {
+  margin-top: 16px;
+  max-width: 50rem;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--panel-border);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.composer {
+  padding: 24px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+textarea,
+select {
+  border: 1px solid rgba(255, 237, 204, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 248, 232, 0.04);
+  color: var(--text);
+  padding: 16px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 180px;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  margin-top: 18px;
+}
+
+.mode-field {
+  width: 180px;
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #161411;
+  padding: 14px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 18px 40px rgba(238, 108, 77, 0.28);
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 22px 0;
+}
+
+.metric {
+  padding: 20px;
+}
+
+.metric h2 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.metric p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.result-card,
+.empty-card,
+.error-card {
+  padding: 24px;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.status-pill {
+  padding: 10px 14px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.74rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.status-pass {
+  background: rgba(92, 184, 92, 0.16);
+  color: #c1f0c1;
+}
+
+.status-needs_human,
+.status-running {
+  background: rgba(244, 162, 97, 0.18);
+  color: #ffd6a6;
+}
+
+.status-fail {
+  background: rgba(209, 73, 91, 0.18);
+  color: #ffb7c0;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.result-grid p,
+.notes li,
+.empty-card p,
+.error-card p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.notes {
+  margin-top: 18px;
+}
+
+.notes ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 900px) {
+  .grid,
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls,
+  .result-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mode-field {
+    width: 100%;
+  }
+}

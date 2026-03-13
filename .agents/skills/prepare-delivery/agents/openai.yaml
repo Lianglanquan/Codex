@@ -1,0 +1,6 @@
+interface:
+  display_name: "Prepare Delivery"
+  short_description: "Assemble the final owner-facing delivery bundle with proof, rollback, and gaps."
+  default_prompt: "Use $prepare-delivery to build deliver.json and DELIVER.md from the run artifacts."
+policy:
+  allow_implicit_invocation: true
